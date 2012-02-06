@@ -57,8 +57,9 @@ class	Chat(LineReceiver):
     elif self.state == "NEWUSER":
       self.user_pubkey = RSA.importKey(line).publickey().exportKey()
       authing.add_user(self.name, self.user_pubkey)
-      self.state = 'AUTHED'
-      self.message("New user sucessfully created, welcome !")
+      self.state = "AUTHING"
+      self.message("New user sucessfully created, please sign and return the challenge\n"\
+		     "CHLG:{%s}" % (self.challenge))
     elif self.state == "AUTHING":
       self.user_pubkey = RSA.importKey(authing.get_pubkey(self.name))
       pattern=r'''RESP:{([^>]+)}'''

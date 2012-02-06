@@ -1,18 +1,19 @@
-from twisted.internet import reactor, protocol, threads
-from sys import stdout
-from Crypto.PublicKey import RSA
-from Crypto import Random
+import re
 import time
 import threading
-import re
+import ConfigParser
+from sys import stdout
+from Crypto import Random
+from Crypto.PublicKey import RSA
+from twisted.internet.error import ReactorNotRunning
+from twisted.internet import reactor, protocol, threads
 
-HOST = 'localhost'
-PORT = 4150
+DEFAULT_RSA_SIZE = 1024
 
 def myThread(self):
-  while 1:
-    time.sleep(1)
-    reactor.callFromThread(self.sendMessage,raw_input(""))
+  while True:
+    user_input = raw_input("")
+    reactor.callFromThread(self.sendMessage,user_input)
     pass
 
 class MyClient(protocol.Protocol):
@@ -20,11 +21,12 @@ class MyClient(protocol.Protocol):
     self.RSAkey = RSAkey
 
   def connectionMade(self):
+    self.sendMessage(username)
     t = threading.Thread(target=myThread, args=(self,))
     t.setDaemon(True)
     t.start()
-    self.sendMessage("lastmikoi")
     print 'Connected.'
+    pass
 
   def dataReceived(self, data):
     pattern=r'''CHLG:{([^>]+)}'''
@@ -34,7 +36,8 @@ class MyClient(protocol.Protocol):
       sig = self.RSAkey.sign(challenge, rng)
       sig = sig[0]
       self.sendMessage("RESP:{%s}" % (sig))
-    stdout.write("\t" + data)
+    stdout.write('\t' + data)
+    pass
 
   def sendMessage(self, msg):
     if msg == "/rsa":
@@ -49,10 +52,11 @@ class MyClient(protocol.Protocol):
     print "Connection lost"
     try:
       reactor.stop()
-    except Exception:
+    except ReactorNotRunning:
       pass
 
 class MyClientFactory(protocol.ClientFactory):
+
   def __init__(self, RSAkey):
     self.RSAkey = RSAkey
 
@@ -60,18 +64,39 @@ class MyClientFactory(protocol.ClientFactory):
     return MyClient(self.RSAkey)
   pass
 
-global rng
-if __name__ == '__main__':
-  RSAkey = None
+
+def get_config():
+  config = ConfigParser.RawConfigParser()
+  if config.read('config.cfg') == []:
+    with file("config.cfg", "wb") as f:
+      config.add_section('User')
+      config.add_section('Connection')
+      config.set('User', 'username', raw_input("Enter your username :"))
+      config.set('Connection', 'host', raw_input("PySafe server host :"))
+      config.set('Connection', 'port', raw_input("PySafe server port :"))
+      config.write(f)
+  return config
+
+def get_rsa():
+  global rng
   rng = Random.new().read
   try:
     with file("mykey.pem") as f:
-      RSAkey = RSA.importKey(f.read(), raw_input("Please enter RSA passphrase(none by default) :"))
+      passphrase = raw_input("Please enter RSA passphrase(none by default) :")
+      RSAkey = RSA.importKey(f.read(), passphrase)
   except IOError:
-    RSAkey = RSA.generate(1024, rng)
+    RSAkey = RSA.generate(DEFAULT_RSA_SIZE, rng)
     with file("mykey.pem", "w") as f:
       f.write(RSAkey.exportKey()+"\n")
       f.write(RSAkey.publickey().exportKey())
+  return RSAkey
+
+if __name__ == '__main__':
+  config = get_config()
+  RSAkey = get_rsa()
+  username = config.get('User', 'username')
+  HOST = config.get('Connection', 'host')
+  PORT = config.getint('Connection', 'port')
   factory = MyClientFactory(RSAkey)
   reactor.connectTCP(HOST, PORT, factory)
   reactor.run()
