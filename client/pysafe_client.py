@@ -14,7 +14,6 @@ def myThread(self):
   while True:
     user_input = raw_input("")
     reactor.callFromThread(self.sendMessage,user_input)
-    pass
 
 class MyClient(protocol.Protocol):
   def __init__(self, RSAkey):
@@ -26,7 +25,6 @@ class MyClient(protocol.Protocol):
     t.setDaemon(True)
     t.start()
     print 'Connected.'
-    pass
 
   def dataReceived(self, data):
     pattern=r'''CHLG:{([^>]+)}'''
@@ -34,11 +32,8 @@ class MyClient(protocol.Protocol):
     if m is not None:
       challenge = m.group(1)
       sig = self.RSAkey.sign(challenge, rng)
-      sig = sig[0]
-      self.sendMessage("RESP:{%s}" % (sig))
-    stdout.write('\t' + data)
-    pass
-
+      self.sendMessage("RESP:{%s}" % (sig[0]))
+    print data
   def sendMessage(self, msg):
     if msg == "/rsa":
       self.transport.write(self.RSAkey.publickey().exportKey()+'\r\n')
@@ -46,7 +41,6 @@ class MyClient(protocol.Protocol):
       reactor.stop()
     else:
       self.transport.write(msg + '\r\n')
-  pass
 
   def connectionLost(self, reason):
     print "Connection lost"
@@ -62,8 +56,6 @@ class MyClientFactory(protocol.ClientFactory):
 
   def buildProtocol(self, addr):
     return MyClient(self.RSAkey)
-  pass
-
 
 def get_config():
   config = ConfigParser.RawConfigParser()
