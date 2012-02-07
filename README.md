@@ -12,9 +12,9 @@ Requirements
 ------------
 For using PySafeChat, you'll need :
 
-*	Python 2.7 _(Report other working version if you can)_
+*	[Python 2.7](http://www.python.org/download/) _(Report other working version if you can)_
 
-*	Twisted-11.1.0 _(Report other working version if you can)_
+*	[Twisted-11.1.0](http://pypi.python.org/pypi/Twisted) _(Report other working version if you can)_
 
-*	pycrypto-2.5 _(Report other working version if you can)_
+*	[pycrypto-2.5](https://www.dlitz.net/software/pycrypto/) _(Report other working version if you can)_
 
