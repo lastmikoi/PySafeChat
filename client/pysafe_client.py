@@ -74,11 +74,12 @@ def get_rsa():
   rng = Random.new().read
   try:
     with file("mykey.pem") as f:
+      buffer = f.read()
       try:
 	passphrase = raw_input("Please enter RSA passphrase(none by default) :")
-	RSAkey = RSA.importKey(f.read(), passphrase)
+	RSAkey = RSA.importKey(buffer, passphrase)
       except TypeError:
-	RSAkey = RSA.importKey(f.read())
+	RSAkey = RSA.importKey(buffer)
   except IOError:
     RSAkey = RSA.generate(DEFAULT_RSA_SIZE, rng)
     with file("mykey.pem", "w") as f:
