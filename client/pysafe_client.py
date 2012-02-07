@@ -1,7 +1,9 @@
 import re
 import time
+import os.path
 import threading
 import ConfigParser
+import binascii
 from sys import stdout
 from Crypto import Random
 from Crypto.PublicKey import RSA
@@ -72,7 +74,8 @@ def get_config():
 def get_rsa():
   global rng
   rng = Random.new().read
-  try:
+
+  def read_rsa():
     with file("mykey.pem") as f:
       buffer = f.read()
       try:
@@ -80,11 +83,30 @@ def get_rsa():
 	RSAkey = RSA.importKey(buffer, passphrase)
       except TypeError:
 	RSAkey = RSA.importKey(buffer)
-  except IOError:
+    return RSAkey
+    pass
+
+  def gen_rsa():
     RSAkey = RSA.generate(DEFAULT_RSA_SIZE, rng)
     with file("mykey.pem", "w") as f:
       f.write(RSAkey.exportKey()+"\n")
       f.write(RSAkey.publickey().exportKey())
+    pass
+
+  while True:
+    if os.path.exists(r'./mykey.pem'):
+      try:
+	RSAkey = read_rsa()
+	break
+      except binascii.Error:
+	gen_rsa()
+    else:
+      gen_rsa()
+      try:
+	RSAkey = read_rsa()
+	break
+      except binascii.Error:
+	pass
   return RSAkey
 
 if __name__ == '__main__':
