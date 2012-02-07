@@ -16,5 +16,5 @@ For using PySafeChat, you'll need :
 
 *	[Twisted-11.1.0](http://pypi.python.org/pypi/Twisted) _(Report other working version if you can)_
 
-*	[pycrypto-2.5](https://www.dlitz.net/software/pycrypto/) _(Report other working version if you can)_
+*	[pycrypto-2.3](https://www.dlitz.net/software/pycrypto/) _(Report other working version if you can)_
 
