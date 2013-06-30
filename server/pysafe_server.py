@@ -1,16 +1,17 @@
 from twisted.internet import reactor
 from twisted.internet.protocol import Factory
-from networking.Chat import *
+from networking.Chat import Chat
 from authing import init_db
 
-class myFactory(Factory):
 
-  def __init__(self):
-    self.users = {}
+class ChatFactory(Factory):
 
-  def buildProtocol(self, addr):
-    return Chat(self.users)
+    def __init__(self):
+        self.users = {}
+
+    def buildProtocol(self, addr):
+        return Chat(self.users)
 
 init_db()
-reactor.listenTCP(4150, myFactory())
+reactor.listenTCP(4150, ChatFactory())
 reactor.run()
